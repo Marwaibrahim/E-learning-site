@@ -8,7 +8,8 @@ use App\Models\Question;
 use App\Models\QuestionChoice;
 use Illuminate\Http\Request;
 use App\Models\StudentAnswer;
-
+use App\Models\User;
+use DB;
 class CourseController extends Controller
 {
     public function index()
@@ -24,14 +25,41 @@ class CourseController extends Controller
 
     public function show($id)
     {
+        $user_id = auth()->id();
         $course = Course::find($id);
         $exam = Exam::where('course_id', $course->id)->first();
-        if ($exam) {
-            foreach ($exam->questions as $question)
-                $answers = StudentAnswer::where('user_id', auth()->id())->where('question_id', $question->id)->exists();
-        } else
-            $answers = false;
+        $questions = Question::where('exam_id', $exam->id)->pluck('id');
+        $users= DB::table('student_answer')->whereIn('question_id',$questions)->distinct()->select ('user_id')->get();
+        // dd($users);
+        $sucess = 0;
+        $failuer = 0; 
+        $exam_id = $exam->id;
+        foreach($users as $stud){
+            // dd($stud->user_id,$exam_id);
+            $result = StudentAnswer::getAnswer($stud->user_id, $exam_id);
+            // dd($result);
+            $percentage = ($result->score / $exam->degree) * 100;
+            $degree = percnetage($percentage);
+            echo($percentage.' ');
+            echo($degree.' ');
+            if($percentage >= (50/100)){
+                $sucess++;                
+            }
+            else {
+                // dd('xdhx');
+                $failuer++;
+            }
+        }
+        dd($sucess, $failuer);
+           
+        // if ($exam) {
+        //     foreach ($exam->questions as $question)
+        //         $answers = StudentAnswer::where('user_id', auth()->id())->where('question_id', $question->id)->exists();
+        // } else
+        //     $answers = false;
         return view('courses.show', compact('course', 'exam', 'answers'));
+
+
     }
 
     public function getExamResult($id)

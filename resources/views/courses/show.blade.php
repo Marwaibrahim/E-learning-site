@@ -68,6 +68,21 @@
                             </ul>
                         </div>
 
+  <script>
+  <canvas id="myChart" width="400" height="400"></canvas>
+    var ctx = document.getElementById("myChart").getContext("2d");
+    var data = {
+        labels: {!! json_encode($sucess) !!},
+        datasets: [
+            {
+                label: "My Data",                    
+                data: {!! json_encode($failuer) !!}
+            }
+        ]
+    };
+    var myLineChart = new Chart(ctx).Line(data);
+  </script>
+
                         @if($exam && !$answers)
                             <h4 class="title">Exam</h4>
                             <div class="content">
